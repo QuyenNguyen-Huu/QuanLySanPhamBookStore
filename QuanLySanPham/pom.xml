@@ -4,6 +4,26 @@
   <artifactId>QuanLySanPham</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>war</packaging>
+  
+  <dependencies>
+	  <dependency>
+			<groupId>commons-fileupload</groupId>
+			<artifactId>commons-fileupload</artifactId>
+			<version>1.3.3</version>
+		</dependency>
+<dependency>
+<groupId>org.springframework</groupId>
+<artifactId>spring-webmvc</artifactId>
+<version>4.3.8.RELEASE</version>
+</dependency>
+    <dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>jstl</artifactId>
+    <version>1.2</version>
+</dependency>
+
+</dependencies>
+
   <build>
     <plugins>
       <plugin>
