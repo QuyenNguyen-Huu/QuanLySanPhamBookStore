@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi Tiết Sản Phẩm</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+		integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+		integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+		crossorigin="anonymous"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar {
+            background-color: #f8f9fa;
+            padding: 10px 20px;
+        }
+        .container {
+            display: flex;
+            width: 100%;
+            padding: 20px;
+        }
+        .product-image {
+  display: flex;
+  align-items: center;   /* Căn dọc cho đẹp */
+  gap: 10px;             /* Khoảng cách giữa các ảnh */
+}
+.product-image img {
+  height: 150px;         /* Chiều cao đồng đều */
+  width: auto;           /* Giữ nguyên tỷ lệ */
+  object-fit: cover;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.related-products {
+  display: flex;
+  gap: 10px;
+}
+
+.related-products img {
+  height: 150px;  /* Đồng bộ chiều cao với ảnh chính */
+  width: auto;
+}
+
+
+        .product-details {
+            flex: 2;
+            padding-left: 20px;
+        }
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .details-table td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .details-table td:first-child {
+            font-weight: bold;
+            width: 30%;
+        }
+        .related-products {
+            margin-top: 20px;
+        }
+        
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light px-4">
+  <a class="navbar-brand fw-bold" th:href="@{/products/list}">Quản lý</a>
+  <div class="collapse navbar-collapse">
+    <ul class="navbar-nav me-auto">
+      <li class="nav-item"><a class="nav-link" th:href="@{/home}">Trang chủ</a></li>
+
+    </ul>
+    <a class="btn btn-outline-secondary" th:href="@{/logout}">
+        <i class="bi bi-box-arrow-right"></i> Đăng xuất
+      </a>
+  </div>
+</nav>																								
+<div class="container">
+    <div class="product-image">
+    <img th:src="@{${product.lazyloadedSrc}}" th:alt="${product.productNameNoEllipsis}" />
+    <div class="related-products">
+      <div th:each="img : ${product.imagePaths}">
+        <img th:src="@{${img}}" alt="Ảnh phụ" />
+      </div>
+    </div>
+  </div>
+    </div>
+    <div class="product-details">
+        <h2 th:text="${product.productNameNoEllipsis}">Tên sản phẩm</h2>
+        <table class="details-table">
+            <tr>
+                <td>Giá gốc</td>
+                <td th:text="${product.price2}">100.000đ</td>
+            </tr>
+            <tr>
+                <td>Giá khuyến mãi</td>
+                <td th:text="${product.price}">80.000đ</td>
+            </tr>
+            <tr>
+                <td>Số lượng còn lại</td>
+                <td th:text="${product.quantity}">10</td>
+            </tr>
+            <tr>
+                <td>Thể loại</td>
+                <td>
+                      <span th:each="name : ${genreNames}" th:text="${name}" style="margin-right: 5px;"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>Danh mục</td>
+                <td th:text="${categoryName}"></td>
+            </tr>
+            <tr>
+                <td>Mã sản phẩm (ID)</td>
+                <td th:text="${product.id}">xxx</td>
+            </tr>
+        </table>
+          <a class="btn btn-primary btn-sm" th:href="@{/products/edit(id=${product.id})}">Sửa</a>
+           <a class="btn btn-primary btn-sm" th:href="@{/products/list}">Quay lại</a>
+    </div>
+</div>
+
+</body>
+</html>
