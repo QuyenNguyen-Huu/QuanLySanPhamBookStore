@@ -1,9 +1,11 @@
 package controllers;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -59,35 +61,59 @@ public class ProductController {
 	private String getUploadDir() {
 		return servletContext.getInitParameter("uploadDir");
 	}
+	
+	private String convertToBase64(MultipartFile file) throws IOException {
+	    String contentType = file.getContentType(); // ví dụ: image/jpeg, image/png
+	    if (contentType == null) contentType = "image/jpeg"; // fallback
 
-	private List<String> saveImages(MultipartFile[] files) throws Exception {
-		List<String> paths = new ArrayList<>();
+	    byte[] bytes = file.getBytes();
+	    String base64 = Base64.getEncoder().encodeToString(bytes);
 
-		String uploadsDir = getUploadDir();
-		Path uploadPath = Paths.get(uploadsDir);
-		if (!Files.exists(uploadPath)) {
-			Files.createDirectories(uploadPath);
-		}
+	    return "data:" + contentType + ";base64," + base64.replaceAll("\\s", "");
+	}
 
-		for (MultipartFile file : files) {
-			if (file.isEmpty())
-				continue;
+	private List<String> saveImagesAsBase64(MultipartFile[] files) throws Exception {
+	    List<String> base64Images = new ArrayList<>();
 
-			String fileName = Paths.get(file.getOriginalFilename()).getFileName().toString();
-			Path filePath = uploadPath.resolve(fileName);
-			file.transferTo(filePath.toFile());
-			paths.add("/uploads/" + fileName);
-		}
+	    for (MultipartFile file : files) {
+	        if (file.isEmpty()) continue;
 
-		return paths;
+	        String base64 = convertToBase64(file);
+
+	        // Fix prefix nếu thiếu
+	        if (!base64.startsWith("data:image")) {
+	            String contentType = file.getContentType();
+	            if (contentType == null) contentType = "image/jpeg";
+	            base64 = "data:" + contentType + ";base64," + base64;
+	        }
+
+	        base64Images.add(base64);
+	    }
+
+	    return base64Images;
 	}
 
 	private void deleteImage(String imagePath) {
 		if (imagePath != null && !imagePath.isEmpty()) {
+			// Nếu là base64 thì bỏ qua
+			if (imagePath.startsWith("data:image")) {
+				System.out.println("Ảnh base64, không cần xoá file.");
+				return;
+			}
+
+			// Nếu là đường dẫn thì tiếp tục xoá
 			String fileName = imagePath.replace("/uploads/", "");
-			Path pathToDelete = Paths.get(getUploadDir(), fileName);
+			String uploadDir = getUploadDir();
+
+			if (uploadDir == null) {
+				System.err.println("Thư mục upload null, không thể xoá ảnh.");
+				return;
+			}
+
+			Path pathToDelete = Paths.get(uploadDir, fileName);
 			try {
 				Files.deleteIfExists(pathToDelete);
+				System.out.println("Đã xoá ảnh file: " + pathToDelete);
 			} catch (Exception e) {
 				System.err.println("Không thể xoá ảnh cũ: " + e.getMessage());
 			}
@@ -118,19 +144,19 @@ public class ProductController {
 		}
 
 		try {
-			List<String> savedPaths = saveImages(files);
+	        List<String> base64Images = saveImagesAsBase64(files);
 
-			if (!savedPaths.isEmpty()) {
-				// Ảnh đầu tiên -> lazyloadedSrc
-				book.setLazyloadedSrc(savedPaths.get(0));
+	        if (!base64Images.isEmpty()) {
+	            // Ảnh đầu tiên -> lazyloadedSrc
+	            book.setLazyloadedSrc(base64Images.get(0));
 
-				// Các ảnh còn lại -> imagePaths
-				if (savedPaths.size() > 1) {
-					book.setImagePaths(savedPaths.subList(1, savedPaths.size()));
-				} else {
-					book.setImagePaths(new ArrayList<>());
-				}
-			}
+	            // Các ảnh còn lại -> imagePaths
+	            if (base64Images.size() > 1) {
+	                book.setImagePaths(base64Images.subList(1, base64Images.size()));
+	            } else {
+	                book.setImagePaths(new ArrayList<>());
+	            }
+	        }
 
 			bookRepo.save(book);
 			return "redirect:/products/list";
@@ -216,68 +242,60 @@ public class ProductController {
 			return "product_edit";
 		}
 
-		try {
-			Product existingProduct = bookRepo.findById(id).orElse(null);
-			if (existingProduct == null) {
-				return "redirect:/products/list";
-			}
+		 try {
+		        Product existingProduct = bookRepo.findById(id).orElse(null);
+		        if (existingProduct == null) {
+		            return "redirect:/products/list";
+		        }
 
-			// 1️⃣ Xử lý danh sách ảnh muốn giữ lại (nếu có)
-			List<String> finalImageList = new ArrayList<>();
-			String finalLazyloadedSrc = null;
+		        // 1️⃣ Ảnh giữ lại
+		        List<String> finalImageList = new ArrayList<>();
+		        String finalLazyloadedSrc = null;
 
-			if (keepImages != null) {
-				for (String img : keepImages) {
-					if (img.equals(existingProduct.getLazyloadedSrc())) {
-						finalLazyloadedSrc = img; // Ảnh chính
-					} else {
-						finalImageList.add(img); // Ảnh phụ
-					}
-				}
-			}
+		        if (keepImages != null) {
+		            for (String img : keepImages) {
+		                if (img.equals(existingProduct.getLazyloadedSrc())) {
+		                    finalLazyloadedSrc = img; // Ảnh chính
+		                } else {
+		                    finalImageList.add(img); // Ảnh phụ
+		                }
+		            }
+		        }
 
-			// 2️⃣ Xóa ảnh không giữ lại
-			if (existingProduct.getLazyloadedSrc() != null
-					&& (keepImages == null || !keepImages.contains(existingProduct.getLazyloadedSrc()))) {
-				deleteImage(existingProduct.getLazyloadedSrc());
-			}
-			if (existingProduct.getImagePaths() != null) {
-				for (String img : existingProduct.getImagePaths()) {
-					if (keepImages == null || !keepImages.contains(img)) {
-						deleteImage(img);
-					}
-				}
-			}
+		        // 2️⃣ Ảnh mới (nếu có)
+		        if (files.length > 0 && !files[0].isEmpty()) {
+		            List<String> newBase64Images = new ArrayList<>();
+		            for (MultipartFile file : files) {
+		                if (!file.isEmpty()) {
+		                    String contentType = file.getContentType();
+		                    if (contentType == null) contentType = "image/jpeg";
+		                    String base64 = Base64.getEncoder().encodeToString(file.getBytes());
+		                    base64 = "data:" + contentType + ";base64," + base64;
+		                    newBase64Images.add(base64);
+		                }
+		            }
 
-			// 3️⃣ Lưu ảnh mới (nếu có)
-			if (files.length > 0 && !files[0].isEmpty()) {
-				List<String> savedPaths = saveImages(files);
+		            if (!newBase64Images.isEmpty()) {
+		                if (finalLazyloadedSrc == null) {
+		                    finalLazyloadedSrc = newBase64Images.get(0);
+		                    newBase64Images.remove(0);
+		                }
+		                finalImageList.addAll(newBase64Images);
+		            }
+		        }
 
-				if (!savedPaths.isEmpty()) {
-					if (finalLazyloadedSrc == null) {
-						// Nếu ko có ảnh giữ lại, lấy ảnh đầu tiên mới làm lazyloadedSrc
-						finalLazyloadedSrc = savedPaths.get(0);
-						savedPaths.remove(0);
-					} else {
-						// Nếu có ảnh giữ lại làm lazyloadedSrc, ảnh mới đưa vào imagePaths
-					}
+		        // 3️⃣ Cập nhật thông tin sản phẩm
+		        existingProduct.setLazyloadedSrc(finalLazyloadedSrc);
+		        existingProduct.setImagePaths(finalImageList);
+		        existingProduct.setProductNameNoEllipsis(updatedProduct.getProductNameNoEllipsis());
+		        existingProduct.setPrice(updatedProduct.getPrice());
+		        existingProduct.setPrice2(updatedProduct.getPrice2());
+		        existingProduct.setCategoryId(updatedProduct.getCategoryId());
+		        existingProduct.setGenres(updatedProduct.getGenres());
 
-					finalImageList.addAll(savedPaths);
-				}
-			}
+		        bookRepo.save(existingProduct);
 
-			// 4️⃣ Cập nhật thông tin sản phẩm
-			existingProduct.setLazyloadedSrc(finalLazyloadedSrc);
-			existingProduct.setImagePaths(finalImageList);
-			existingProduct.setProductNameNoEllipsis(updatedProduct.getProductNameNoEllipsis());
-			existingProduct.setPrice(updatedProduct.getPrice());
-			existingProduct.setPrice2(updatedProduct.getPrice2());
-			existingProduct.setCategoryId(updatedProduct.getCategoryId());
-			existingProduct.setGenres(updatedProduct.getGenres());
-
-			bookRepo.save(existingProduct);
-
-			return "redirect:/products/list";
+		        return "redirect:/products/list";
 
 		} catch (Exception e) {
 			e.printStackTrace();

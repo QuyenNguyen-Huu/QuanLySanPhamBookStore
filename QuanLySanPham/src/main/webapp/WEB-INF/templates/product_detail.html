@@ -89,49 +89,69 @@
   </div>
 </nav>																								
 <div class="container">
-    <div class="product-image">
-    <img th:src="@{${product.lazyloadedSrc}}" th:alt="${product.productNameNoEllipsis}" />
-    <div class="related-products">
-      <div th:each="img : ${product.imagePaths}">
-        <img th:src="@{${img}}" alt="Ảnh phụ" />
+   <!-- PHẦN ẢNH SẢN PHẨM -->
+  <div class="row">
+    <div class="col-12 text-center">
+      <th:block th:switch="${#strings.startsWith(product.lazyloadedSrc, 'data:image/')}">
+        <img th:case="true" th:src="${product.lazyloadedSrc}" th:alt="${product.productNameNoEllipsis}"
+             style="max-height: 300px; object-fit: contain;" />
+        <img th:case="false" th:src="@{${product.lazyloadedSrc}}" th:alt="${product.productNameNoEllipsis}"
+             style="max-height: 300px; object-fit: contain;" />
+      </th:block>
+    </div>
+
+    <!-- ẢNH PHỤ -->
+    <div class="col-12">
+      <div class="related-products d-flex justify-content-center flex-wrap gap-2 mt-3">
+        <div th:each="img : ${product.imagePaths}">
+          <th:block th:switch="${#strings.startsWith(img, 'data:image/')}">
+            <img th:case="true" th:src="${img}" alt="Ảnh phụ" class="img-thumbnail"
+                 style="width: 80px; height: 80px; object-fit: cover;" />
+            <img th:case="false" th:src="@{${img}}" alt="Ảnh phụ" class="img-thumbnail"
+                 style="width: 80px; height: 80px; object-fit: cover;" />
+          </th:block>
+        </div>
       </div>
     </div>
   </div>
+
+   <!-- PHẦN THÔNG TIN SẢN PHẨM -->
+  <div class="row mt-4">
+    <div class="col-12 product-details">
+      <h2 th:text="${product.productNameNoEllipsis}">Tên sản phẩm</h2>
+      <table class="details-table table">
+        <tr>
+          <td>Giá gốc</td>
+          <td th:text="${product.price2}">100.000đ</td>
+        </tr>
+        <tr>
+          <td>Giá khuyến mãi</td>
+          <td th:text="${product.price}">80.000đ</td>
+        </tr>
+        <tr>
+          <td>Số lượng còn lại</td>
+          <td th:text="${product.quantity}">10</td>
+        </tr>
+        <tr>
+          <td>Thể loại</td>
+          <td>
+            <span th:each="name : ${genreNames}" th:text="${name}" style="margin-right: 5px;"></span>
+          </td>
+        </tr>
+        <tr>
+          <td>Danh mục</td>
+          <td th:text="${categoryName}"></td>
+        </tr>
+        <tr>
+          <td>Mã sản phẩm (ID)</td>
+          <td th:text="${product.id}">xxx</td>
+        </tr>
+      </table>
+
+      <a class="btn btn-primary btn-sm" th:href="@{/products/edit(id=${product.id})}">Sửa</a>
+      <a class="btn btn-secondary btn-sm" th:href="@{/products/list}">Quay lại</a>
     </div>
-    <div class="product-details">
-        <h2 th:text="${product.productNameNoEllipsis}">Tên sản phẩm</h2>
-        <table class="details-table">
-            <tr>
-                <td>Giá gốc</td>
-                <td th:text="${product.price2}">100.000đ</td>
-            </tr>
-            <tr>
-                <td>Giá khuyến mãi</td>
-                <td th:text="${product.price}">80.000đ</td>
-            </tr>
-            <tr>
-                <td>Số lượng còn lại</td>
-                <td th:text="${product.quantity}">10</td>
-            </tr>
-            <tr>
-                <td>Thể loại</td>
-                <td>
-                      <span th:each="name : ${genreNames}" th:text="${name}" style="margin-right: 5px;"></span>
-                </td>
-            </tr>
-            <tr>
-                <td>Danh mục</td>
-                <td th:text="${categoryName}"></td>
-            </tr>
-            <tr>
-                <td>Mã sản phẩm (ID)</td>
-                <td th:text="${product.id}">xxx</td>
-            </tr>
-        </table>
-          <a class="btn btn-primary btn-sm" th:href="@{/products/edit(id=${product.id})}">Sửa</a>
-           <a class="btn btn-primary btn-sm" th:href="@{/products/list}">Quay lại</a>
-    </div>
-</div>
+  </div>
 
 </body>
 </html>

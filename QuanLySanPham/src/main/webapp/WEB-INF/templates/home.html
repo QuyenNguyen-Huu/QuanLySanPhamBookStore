@@ -364,8 +364,20 @@
 					<div th:each="book, iterStat : ${topDiscountedBooks}" th:if="${iterStat.index < 5}"
 						class="text-center me-2">
 						<a th:href="@{/products/product/{id}(id=${book.id})}">
-							<img th:src="@{${book.lazyloadedSrc}}" class="d-block"
-								style="height:200px; object-fit:contain;" alt="Book Image">
+							<!-- Ảnh hiển thị cho sách (có xử lý base64 và link) -->
+<!-- base64 -->
+<img th:if="${#strings.startsWith(book.lazyloadedSrc, 'data:image/')}"
+     th:src="${book.lazyloadedSrc}"
+     class="d-block"
+     style="height:200px; object-fit:contain;"
+     alt="Book Image" />
+
+<!-- link -->
+<img th:if="${!#strings.startsWith(book.lazyloadedSrc, 'data:image/')}"
+     th:src="@{${book.lazyloadedSrc}}"
+     class="d-block"
+     style="height:200px; object-fit:contain;"
+     alt="Book Image" />
 						</a>
 						<p class="text-danger fw-bold" th:text="'Giá bán: ' + ${book.price}"></p>
 						<p class="text-muted"><del th:text="'Giá gốc: ' + ${book.price2}"></del></p>
@@ -442,8 +454,13 @@
 								class="text-decoration-none text-dark">
 								<div class="position-relative overflow-hidden rounded-3">
 									<span class="discount-tag" th:text="'-' +${book.discountPercent} + '%'"></span>
-									<img th:src="@{${book.lazyloadedSrc}}" class="card-img-top product-img"
-										alt="Ảnh sách">
+									<img th:if="${#strings.startsWith(book.lazyloadedSrc, 'data:image/')}" 
+     th:src="${book.lazyloadedSrc}" 
+     class="card-img-top product-img" alt="Ảnh sách">
+
+<img th:if="${!#strings.startsWith(book.lazyloadedSrc, 'data:image/')}" 
+     th:src="@{${book.lazyloadedSrc}}" 
+     class="card-img-top product-img" alt="Ảnh sách">
 
 									<!-- Hover overlay -->
 									<div class="product-overlay d-flex justify-content-center align-items-center">
@@ -523,7 +540,13 @@
 						<div class="card h-100 product-card position-relative">
 							<a th:href="@{/products/product/{id}(id=${book.id})}"
 								class="text-decoration-none text-dark">
-								<img th:src="@{${book.lazyloadedSrc}}" class="card-img-top product-img" alt="Ảnh sách">
+								<img th:if="${#strings.startsWith(book.lazyloadedSrc, 'data:image/')}" 
+     th:src="${book.lazyloadedSrc}" 
+     class="card-img-top product-img" alt="Ảnh sách">
+
+<img th:if="${!#strings.startsWith(book.lazyloadedSrc, 'data:image/')}" 
+     th:src="@{${book.lazyloadedSrc}}" 
+     class="card-img-top product-img" alt="Ảnh sách">
 								<div class="card-body p-2">
 									<p class="card-title fw-bold small text-truncate"
 										th:text="${book.productNameNoEllipsis}"></p>

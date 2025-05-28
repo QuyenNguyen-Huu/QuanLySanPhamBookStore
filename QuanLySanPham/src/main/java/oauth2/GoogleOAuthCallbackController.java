@@ -45,7 +45,7 @@ public class GoogleOAuthCallbackController {
         String params = "code=" + code +
                 "&client_id=802994161040-rnfo0vcdj4tk3j64npdhtbqeaur8cu5m.apps.googleusercontent.com" +
                 "&client_secret=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" +
-                "&redirect_uri=http://localhost:8080/QuanLySanPham/oauth2/callback/google" +
+                "&redirect_uri=http://sachhay-env.eba-xzqbixdm.ap-southeast-2.elasticbeanstalk.com/oauth2/callback/google" +
                 "&grant_type=authorization_code";
 
         try (OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream())) {

@@ -258,31 +258,39 @@
 			<!-- Hình ảnh sản phẩm -->
 <div class="col-md-4">
   <!-- Ảnh chính (to, trên cùng) -->
-  <img th:src="@{${book.lazyloadedSrc}}" class="img-fluid detail-img mb-3" 
-     style="max-width: 100%; border:1px solid #ccc; border-radius: 10px;" 
-     alt="Ảnh chính" id="mainImage" 
-     th:attr="data-src=@{${book.lazyloadedSrc}}" />
+  <div th:if="${book.lazyloadedSrc != null}" th:with="isBase64=${#strings.startsWith(book.lazyloadedSrc, 'data:image/')}">
+  <img th:src="${isBase64} ? ${book.lazyloadedSrc} : @{${book.lazyloadedSrc}}"
+       class="img-fluid detail-img mb-3"
+       style="max-width: 100%; border:1px solid #ccc; border-radius: 10px;"
+       alt="Ảnh chính" id="mainImage"
+       th:attr="data-src=${isBase64} ? ${book.lazyloadedSrc} : @{${book.lazyloadedSrc}}" />
+</div>
 
-  <!-- Hàng chứa ảnh gốc và ảnh phụ nằm ngang -->
-  <div>
-    <h5>Ảnh khác</h5>
-    <div class="d-flex gap-2 flex-wrap align-items-center">
-      <!-- Ảnh gốc cũng là 1 thumbnail có thể click được -->
-      <img th:src="@{${book.lazyloadedSrc}}" 
+<!-- Hàng chứa ảnh gốc và ảnh phụ -->
+<div>
+  <h5>Ảnh khác</h5>
+  <div class="d-flex gap-2 flex-wrap align-items-center">
+    
+    <!-- Thumbnail ảnh chính -->
+    <div th:if="${book.lazyloadedSrc != null}" th:with="isBase64=${#strings.startsWith(book.lazyloadedSrc, 'data:image/')}">
+      <img th:src="${isBase64} ? ${book.lazyloadedSrc} : @{${book.lazyloadedSrc}}"
            class="img-thumbnail thumb-img"
            style="width:80px; height:80px; object-fit:cover; cursor:pointer;"
-           alt="Ảnh gốc" 
-          th:attr="data-src=@{${book.lazyloadedSrc}}" />
+           alt="Ảnh gốc"
+           th:attr="data-src=${isBase64} ? ${book.lazyloadedSrc} : @{${book.lazyloadedSrc}}" />
+    </div>
 
-      <!-- Ảnh phụ -->
-      <img th:each="imgPath : ${book.imagePaths}"
-           th:src="@{${imgPath}}"
+    <!-- Ảnh phụ -->
+    <div th:each="imgPath : ${book.imagePaths}" th:with="isBase64=${#strings.startsWith(imgPath, 'data:image/')}">
+      <img th:src="${isBase64} ? ${imgPath} : @{${imgPath}}"
            class="img-thumbnail thumb-img"
            style="width:80px; height:80px; object-fit:cover; cursor:pointer;"
            alt="Ảnh phụ"
-           th:attr="data-src=@{${imgPath}}" />
+           th:attr="data-src=${isBase64} ? ${imgPath} : @{${imgPath}}" />
     </div>
   </div>
+</div>
+
 </div>
 
 			<!-- Thông tin sản phẩm -->
@@ -309,7 +317,13 @@
         <div class="col" th:each="book : ${suggestedBooks}">
             <div class="card h-100 product-card position-relative">
                 <a th:href="@{/products/product/{id}(id=${book.id})}" class="text-decoration-none text-dark">
-                    <img th:src="@{${book.lazyloadedSrc}}" class="card-img-top product-img" alt="Ảnh sách">
+                   <img th:if="${#strings.startsWith(book.lazyloadedSrc, 'data:image/')}" 
+     th:src="${book.lazyloadedSrc}" 
+     class="card-img-top product-img" alt="Ảnh sách">
+
+<img th:if="${!#strings.startsWith(book.lazyloadedSrc, 'data:image/')}" 
+     th:src="@{${book.lazyloadedSrc}}" 
+     class="card-img-top product-img" alt="Ảnh sách">
                     <div class="card-body p-2">
                         <p class="card-title fw-bold small text-truncate" th:text="${book.productNameNoEllipsis}"></p>
                         <p class="text-danger fw-bold mb-0" th:text="'Giá bán: ' + ${book.price} + 'đ'"></p>

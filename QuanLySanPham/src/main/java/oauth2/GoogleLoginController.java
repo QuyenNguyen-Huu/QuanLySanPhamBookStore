@@ -11,7 +11,7 @@ import java.io.IOException;
 public class GoogleLoginController {
 
     private final String clientId = "802994161040-rnfo0vcdj4tk3j64npdhtbqeaur8cu5m.apps.googleusercontent.com";
-    private final String redirectUri = "http://localhost:8080/QuanLySanPham/oauth2/callback/google";
+    private final String redirectUri = "http://sachhay-env.eba-xzqbixdm.ap-southeast-2.elasticbeanstalk.com/oauth2/callback/google";
     private final String scope = "openid email profile";
     private final String authorizationEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
 

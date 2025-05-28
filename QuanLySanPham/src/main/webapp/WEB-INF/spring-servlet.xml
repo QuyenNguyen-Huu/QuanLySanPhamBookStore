@@ -47,7 +47,7 @@
 
 	<!-- Tạo MongoClient riêng -->
 <bean id="mongoClient" class="com.mongodb.client.MongoClients" factory-method="create" destroy-method="close">
-    <constructor-arg value="mongodb://localhost:27017" />
+    <constructor-arg value="mongodb+srv://quyenlaso6:quyen0889310293@cluster0.chzodd2.mongodb.net/?retryWrites=true&amp;w=majority&amp;appName=Cluster0" />
 </bean>
 
 <!-- DatabaseFactory -->

@@ -53,15 +53,37 @@
   <div class="d-flex flex-wrap gap-2">
     <!-- Ảnh chính -->
     <div th:if="${product.lazyloadedSrc != null}" class="d-flex flex-column align-items-center">
-      <input type="checkbox" name="keepImages" th:value="${product.lazyloadedSrc}" checked>
-      <img th:src="@{${product.lazyloadedSrc}}" style="max-height: 100px;" alt="Ảnh chính">
-    </div>
+  <input type="checkbox" name="keepImages" th:value="${product.lazyloadedSrc}" checked>
+
+  <!-- Ảnh chính - base64 -->
+  <img th:if="${#strings.startsWith(product.lazyloadedSrc, 'data:image/')}" 
+       th:src="${product.lazyloadedSrc}" 
+       style="max-height: 100px;" 
+       alt="Ảnh chính">
+
+  <!-- Ảnh chính - dạng link -->
+  <img th:if="${!#strings.startsWith(product.lazyloadedSrc, 'data:image/')}" 
+       th:src="@{${product.lazyloadedSrc}}" 
+       style="max-height: 100px;" 
+       alt="Ảnh chính">
+</div>
 
     <!-- Ảnh phụ -->
     <div th:if="${product.imagePaths != null}" th:each="img : ${product.imagePaths}" class="d-flex flex-column align-items-center">
-      <input type="checkbox" name="keepImages" th:value="${img}" checked>
-      <img th:src="@{${img}}" style="max-height: 100px;" alt="Ảnh phụ">
-    </div>
+  <input type="checkbox" name="keepImages" th:value="${img}" checked>
+
+  <!-- Ảnh phụ - base64 -->
+  <img th:if="${#strings.startsWith(img, 'data:image/')}" 
+       th:src="${img}" 
+       style="max-height: 100px;" 
+       alt="Ảnh phụ">
+
+  <!-- Ảnh phụ - dạng link -->
+  <img th:if="${!#strings.startsWith(img, 'data:image/')}" 
+       th:src="@{${img}}" 
+       style="max-height: 100px;" 
+       alt="Ảnh phụ">
+</div>
   </div>
 </div>
 

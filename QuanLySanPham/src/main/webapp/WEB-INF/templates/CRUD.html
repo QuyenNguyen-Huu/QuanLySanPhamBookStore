@@ -70,7 +70,17 @@
   <div class="list-group">
     <div th:each="product : ${products}" class="list-group-item d-flex align-items-center justify-content-between">
       <!-- Ảnh -->
-      <img th:src="@{${product.lazyloadedSrc}}" alt="Ảnh" style="width: 80px; height: auto; object-fit: cover;">
+      <!-- Nếu là ảnh base64 -->
+<img th:if="${#strings.startsWith(product.lazyloadedSrc, 'data:image/')}" 
+     th:src="${product.lazyloadedSrc}" 
+     alt="Ảnh" 
+     style="width: 80px; height: auto; object-fit: cover;">
+
+<!-- Nếu là ảnh dạng link hoặc đường dẫn -->
+<img th:if="${!#strings.startsWith(product.lazyloadedSrc, 'data:image/')}" 
+     th:src="@{${product.lazyloadedSrc}}" 
+     alt="Ảnh" 
+     style="width: 80px; height: auto; object-fit: cover;">
 
       <!-- Thông tin -->
       <div class="flex-grow-1 ms-3">
