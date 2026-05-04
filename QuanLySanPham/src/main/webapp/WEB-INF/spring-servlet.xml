@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+						http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo.xsd
+						http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+	<context:component-scan base-package="controllers,dao,repository,configs,oauth2" />
+	
+	<!-- Kích hoạt annotation như @GetMapping, @PostMapping -->
+	<mvc:annotation-driven />
+	
+	<mongo:repositories base-package="repository" />
+	
+	<mvc:resources mapping="/uploads/**" location="file:/C:/Users/ADMIN/Desktop/uploads/" />
+	
+	<bean id="passwordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
+	
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="maxUploadSize" value="1000000" /> <!-- Giới hạn kích
+		thước tệp tải lên -->
+	</bean>
+
+	<!-- Thymeleaf Template Resolver -->
+	<bean id="templateResolver"
+		class="org.thymeleaf.templateresolver.ServletContextTemplateResolver">
+		<property name="prefix" value="/WEB-INF/templates/" />
+		<property name="suffix" value=".html" />
+		<property name="templateMode" value="HTML" />
+		<property name="characterEncoding" value="UTF-8" />
+	</bean>
+
+	<!-- Thymeleaf Template Engine -->
+	<bean id="templateEngine" class="org.thymeleaf.spring5.SpringTemplateEngine">
+		<property name="templateResolver" ref="templateResolver" />
+	</bean>
+
+	<!-- Thymeleaf View Resolver -->
+	<bean class="org.thymeleaf.spring5.view.ThymeleafViewResolver">
+		<property name="templateEngine" ref="templateEngine" />
+		<property name="characterEncoding" value="UTF-8" />
+	</bean>
+
+	<!-- Tạo MongoClient riêng -->
+<bean id="mongoClient" class="com.mongodb.client.MongoClients" factory-method="create" destroy-method="close">
+    <constructor-arg value="mongodb+srv://USERNAME:PASSWORD@your-cluster.mongodb.net/database" />
+</bean>
+
+<!-- DatabaseFactory -->
+<bean id="mongoDbFactory" class="org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory">
+    <constructor-arg ref="mongoClient" />
+    <constructor-arg value="bookstore" />
+</bean>
+
+<!-- MongoTemplate -->
+<bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+    <constructor-arg ref="mongoDbFactory" />
+</bean>
+
+</beans>
+

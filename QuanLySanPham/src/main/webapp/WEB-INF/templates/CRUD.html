@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRUD Sản phẩm</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
+</head>
+<body>
+	<div th:if="${success}" class="alert alert-success" role="alert">
+    <span th:text="${success}"></span>
+</div>
+<div th:if="${error}" class="alert alert-danger" role="alert">
+    <span th:text="${error}"></span>
+</div>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light px-4">
+  <a class="navbar-brand fw-bold" th:href="@{/products/list}">Quản lý</a>
+  <div class="collapse navbar-collapse">
+    <ul class="navbar-nav me-auto">
+      <li class="nav-item"><a class="nav-link" th:href="@{/home}">Trang chủ</a></li>
+    </ul>
+    <a class="btn btn-outline-secondary" th:href="@{/logout}">
+        <i class="bi bi-box-arrow-right"></i> Đăng xuất
+      </a>
+  </div>
+</nav>
+
+<div class="container-fluid mt-4">
+  <div class="row">
+    <!-- Sidebar lọc -->
+    <div class="col-md-3">
+    
+      <div class="border p-3 rounded">
+        <h6>Danh mục</h6>
+<form method="get" th:action="@{/products/list}" class="mb-3">
+  <div th:each="category : ${categories}" class="form-check">
+    <input class="form-check-input"
+           type="radio"
+           name="category"
+           th:value="${category.id}"
+           th:checked="${selectedCategory == category.id}">
+    <label class="form-check-label" th:text="${category.name}"></label>
+  </div>
+  <button type="submit" class="btn btn-primary btn-sm mt-2">Lọc</button>
+</form>
+
+        
+      </div>
+    </div>
+
+    <!-- Danh sách sản phẩm -->
+    <div class="col-md-9">
+      <div class="d-flex justify-content-between mb-3">
+        <form method="get" th:action="@{/products/list}" class="d-flex w-50">
+  <input type="text" class="form-control" name="keyword" th:value="${keyword}" placeholder="Search">
+  <button class="btn btn-outline-secondary" type="submit">
+    <i class="bi bi-search"></i>
+  </button>
+</form>
+        <div>
+        <a class="btn btn-success btn-sm" th:href="@{/products/add}">+ Thêm sản phẩm</a>
+        </div>
+      </div>
+
+      <!-- Danh sách sản phẩm 1 hàng = 1 sản phẩm -->
+  <div class="list-group">
+    <div th:each="product : ${products}" class="list-group-item d-flex align-items-center justify-content-between">
+      <!-- Ảnh -->
+      <!-- Nếu là ảnh base64 -->
+<img th:if="${#strings.startsWith(product.lazyloadedSrc, 'data:image/')}" 
+     th:src="${product.lazyloadedSrc}" 
+     alt="Ảnh" 
+     style="width: 80px; height: auto; object-fit: cover;">
+
+<!-- Nếu là ảnh dạng link hoặc đường dẫn -->
+<img th:if="${!#strings.startsWith(product.lazyloadedSrc, 'data:image/')}" 
+     th:src="@{${product.lazyloadedSrc}}" 
+     alt="Ảnh" 
+     style="width: 80px; height: auto; object-fit: cover;">
+
+      <!-- Thông tin -->
+      <div class="flex-grow-1 ms-3">
+        <h5 th:text="${product.productNameNoEllipsis}" class="mb-1">Tên sản phẩm</h5>
+        <p class="mb-0 text-muted" th:text="${product.price}">100.000đ</p>
+      </div>
+
+      <!-- Nút -->
+      <div>
+  <a th:href="@{/products/detail/{id}(id=${product.id})}" class="btn btn-secondary btn-sm me-2 rounded-pill">Thông tin</a>
+  <a th:href="@{/products/edit(id=${product.id})}" class="btn btn-primary btn-sm me-2 rounded-pill">Sửa</a>
+  <form th:action="@{/products/delete}" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xoá sản phẩm này không?')" style="display: inline;">
+    <input type="hidden" name="id" th:value="${product.id}" />
+    <button type="submit" class="btn btn-danger btn-sm rounded-pill">Xoá</button>
+  </form>
+</div>
+    </div>
+  </div>
+
+      
+    </div>
+  </div>
+  <div class="d-flex justify-content-center mt-4">
+  <nav>
+    <ul class="pagination">
+      <!-- Nút "Trước" -->
+      <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+        <a class="page-link" th:href="@{'/products/list?page=' + ${currentPage - 1} + '&size=6'}">&laquo;</a>
+      </li>
+
+      <!-- Trang đầu tiên -->
+      <li class="page-item" th:classappend="${currentPage == 0} ? 'active'">
+        <a class="page-link" th:href="@{'/products/list?page=0&size=6'}">1</a>
+      </li>
+
+      <!-- Dấu "..." nếu currentPage > 2 -->
+      <li class="page-item disabled" th:if="${currentPage > 2}">
+        <a class="page-link">...</a>
+      </li>
+
+      <!-- Các trang gần currentPage -->
+      <li class="page-item"
+          th:each="i : ${#numbers.sequence(currentPage - 2, currentPage + 2)}"
+          th:if="${i > 0 and i < totalPages - 1}"
+          th:classappend="${i == currentPage} ? 'active'">
+        <a class="page-link"
+           th:href="@{'/products/list?page=' + ${i} + '&size=6'}"
+           th:text="${i + 1}">2</a>
+      </li>
+
+      <!-- Dấu "..." nếu currentPage < totalPages - 3 -->
+      <li class="page-item disabled" th:if="${currentPage < totalPages - 3}">
+        <a class="page-link">...</a>
+      </li>
+
+      <!-- Trang cuối -->
+      <li class="page-item" th:if="${totalPages > 1}"
+          th:classappend="${currentPage == totalPages - 1} ? 'active'">
+        <a class="page-link"
+           th:href="@{'/products/list?page=' + ${totalPages - 1} + '&size=6'}"
+           th:text="${totalPages}">Last</a>
+      </li>
+
+      <!-- Nút "Tiếp" -->
+      <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+        <a class="page-link" th:href="@{'/products/list?page=' + ${currentPage + 1} + '&size=6'}">&raquo;</a>
+      </li>
+    </ul>
+  </nav>
+</div>
+</div>
+
+
+</body>
+</html>
